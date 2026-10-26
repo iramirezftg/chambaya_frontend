@@ -1,0 +1,63 @@
+
+<svg width="512" height="512" viewBox="0 0 512 512" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="50%" stop-color="#064E3B" />
+      <stop offset="100%" stop-color="#022C22" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#34D399" />
+      <stop offset="100%" stop-color="#059669" />
+    </linearGradient>
+    <linearGradient id="mexicoGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#15803D" />
+      <stop offset="50%" stop-color="#F8FAFC" />
+      <stop offset="100%" stop-color="#DC2626" />
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#000" flood-opacity="0.45"/>
+    </filter>
+  </defs>
+
+  <!-- Background with subtle border -->
+  <rect width="512" height="512" rx="128" fill="url(#bgGrad)"/>
+  <rect x="12" y="12" width="488" height="488" rx="116" stroke="rgba(255,255,255,0.12)" stroke-width="4"/>
+
+  <!-- Mexican Flag Tricolor bar at the top -->
+  <rect x="156" y="56" width="200" height="8" rx="4" fill="url(#mexicoGrad)" filter="url(#shadow)"/>
+
+  <!-- Main Symbol: Wrench + Lightning Bolt (Oficios + Inmediatez Ya) -->
+  <g filter="url(#shadow)" transform="translate(256, 230)">
+    <!-- Wrench Tool -->
+    <path d="M-60,-90 C-90,-60 -90,-10 -60,20 L30,110 C45,125 70,125 85,110 C100,95 100,70 85,55 L-5,-35 C25,-65 -15,-105 -60,-90 Z" 
+          fill="url(#accentGrad)" />
+    <!-- Circle cut in wrench head -->
+    <circle cx="-65" cy="-65" r="24" fill="#0F172A" />
+    
+    <!-- Lightning Bolt (Ya) in vibrant gold -->
+    <path d="M-10,-50 L35,-50 L0,10 L45,10 L-25,95 L-5,25 L-40,25 Z" 
+          fill="#FBBF24" stroke="#D97706" stroke-width="3" />
+  </g>
+
+  <!-- Brand Typography -->
+  <text x="256" y="405" 
+        text-anchor="middle" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-weight="900" 
+        font-size="52" 
+        letter-spacing="2" 
+        fill="#FFFFFF">
+    Chamba<tspan fill="#34D399">Ya</tspan>
+  </text>
+
+  <text x="256" y="445" 
+        text-anchor="middle" 
+        font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif" 
+        font-weight="700" 
+        font-size="20" 
+        letter-spacing="4" 
+        fill="#94A3B8">
+    MÉXICO • OFICIOS 24/7
+  </text>
+</svg>
