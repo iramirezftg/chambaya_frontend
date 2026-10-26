@@ -48,6 +48,9 @@ export interface Provider {
   avatar: string;
   clabeAccount?: string;
   bankName?: string;
+  rfc?: string;
+  curp?: string;
+  regimenFiscal?: string;
   subscriptionPlan?: 'BASIC' | 'PRO' | 'ENTERPRISE';
   subscriptionStatus?: 'ACTIVE' | 'PAST_DUE' | 'CANCELLED';
   subscriptionBadge?: 'STANDARD' | 'DIAMOND' | 'ENTERPRISE';
@@ -63,7 +66,7 @@ export interface Serviceman {
   rating: number;
   completedJobs: number;
   avatar: string;
-  status: 'available' | 'busy' | 'offline';
+  status: 'available' | 'busy' | 'offline' | 'suspended';
   currentLat?: number;
   currentLng?: number;
   currentAddress?: string;

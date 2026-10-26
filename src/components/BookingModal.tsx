@@ -115,7 +115,7 @@ const BookingModalContent = ({ service }: { service: any }) => {
             <div>
               <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', display: 'block', marginBottom: '0.35rem' }}>Paquete o Modalidad</label>
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: '0.5rem' }}>
-                {service.variants.map((v, i) => (
+                {service.variants.map((v: any, i: number) => (
                   <button
                     key={i}
                     type="button"
