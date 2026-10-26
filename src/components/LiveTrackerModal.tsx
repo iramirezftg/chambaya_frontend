@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { usePlatform } from '../context/PlatformContext';
 import { io, Socket } from 'socket.io-client';
-import { api } from '../lib/api';
+import { api, SOCKET_URL } from '../lib/api';
 import {
   X,
   MapPin,
@@ -63,7 +63,7 @@ export const LiveTrackerModal = () => {
     }).catch(() => {});
 
     // Conectar WebSocket a NestJS Socket.io
-    const socket = io('http://localhost:4000', {
+    const socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling']
     });
     socketRef.current = socket;

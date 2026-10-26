@@ -1,4 +1,5 @@
-const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+export const API_BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:4000/api';
+export const SOCKET_URL = process.env.NEXT_PUBLIC_SOCKET_URL || (process.env.NEXT_PUBLIC_API_URL ? process.env.NEXT_PUBLIC_API_URL.replace(/\/api\/?$/, '') : 'http://localhost:4000');
 
 export interface User {
   id: string;

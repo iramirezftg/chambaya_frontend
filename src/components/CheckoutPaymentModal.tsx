@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePlatform } from '../context/PlatformContext';
-import { api, Booking, CouponValidationResult } from '../lib/api';
+import { api, Booking, CouponValidationResult, SOCKET_URL } from '../lib/api';
 import { io } from 'socket.io-client';
 import confetti from 'canvas-confetti';
 import {
@@ -77,7 +77,7 @@ export const CheckoutPaymentModal = () => {
     initPaymentIntent(activeTab);
 
     // Conectar a WebSockets para escuchar la confirmación de pago en tiempo real
-    const socket = io('http://localhost:4000', {
+    const socket = io(SOCKET_URL, {
       transports: ['websocket', 'polling']
     });
 
