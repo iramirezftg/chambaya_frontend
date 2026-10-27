@@ -1,4 +1,4 @@
-const CACHE_NAME = 'chambaya-pwa-v2';
+const CACHE_NAME = 'chambaya-pwa-v3';
 const STATIC_ASSETS = [
   '/',
   '/mobile',
@@ -18,7 +18,7 @@ const STATIC_ASSETS = [
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => {
-      console.log('📦 [Service Worker] Pre-caching ChambaYa app shell v2');
+      console.log('📦 [Service Worker] Pre-caching ChambaYa app shell v3');
       return cache.addAll(STATIC_ASSETS).catch((err) => {
         console.warn('⚠️ Some assets failed to precache:', err);
       });
@@ -44,13 +44,13 @@ self.addEventListener('activate', (event) => {
   self.clients.claim();
 });
 
-// Fetch: Network-first for dynamic content, cache fallback
+// Fetch: Network-first for dynamic content & navigation, cache fallback
 self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET' || !event.request.url.startsWith('http')) {
     return;
   }
 
-  // API calls: Network first, don't cache unless necessary
+  // 1. API calls: Always network first, offline JSON fallback
   if (event.request.url.includes('/api/')) {
     event.respondWith(
       fetch(event.request).catch(() => {
@@ -62,25 +62,47 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Static assets & navigation: Cache first with network fallback
+  // 2. Navigation requests (App Router pages): Always Network First to avoid stale/broken pages
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request)
+        .then((response) => {
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
+          }
+          return response;
+        })
+        .catch(async () => {
+          const cached = await caches.match(event.request);
+          if (cached) return cached;
+          const mobileFallback = await caches.match('/mobile');
+          if (mobileFallback) return mobileFallback;
+          const rootFallback = await caches.match('/');
+          if (rootFallback) return rootFallback;
+          return new Response(
+            '<!DOCTYPE html><html><head><meta charset="utf-8"><title>ChambaYa Offline</title></head><body style="font-family:sans-serif;padding:2rem;text-align:center;"><h2>Modo Offline ChambaYa 🇲🇽</h2><p>Verifica tu conexión a internet para continuar.</p></body></html>',
+            { headers: { 'Content-Type': 'text/html; charset=utf-8' } }
+          );
+        })
+    );
+    return;
+  }
+
+  // 3. Static assets (images, icons, styles): Cache first with network fallback
   event.respondWith(
     caches.match(event.request).then((cached) => {
       if (cached) return cached;
       return fetch(event.request)
         .then((response) => {
-          if (!response || response.status !== 200 || response.type !== 'basic') {
-            return response;
+          if (response && response.status === 200) {
+            const responseToCache = response.clone();
+            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, responseToCache));
           }
-          const responseToCache = response.clone();
-          caches.open(CACHE_NAME).then((cache) => {
-            cache.put(event.request, responseToCache);
-          });
           return response;
         })
         .catch(() => {
-          if (event.request.mode === 'navigate') {
-            return caches.match('/mobile') || caches.match('/');
-          }
+          return new Response('', { status: 404, statusText: 'Not Found Offline' });
         });
     })
   );

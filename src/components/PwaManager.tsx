@@ -103,7 +103,7 @@ export const PwaManager = () => {
       navigator.serviceWorker
         .register('/sw.js')
         .then((registration) => {
-          console.log('⚡ [PWA] Service Worker v2 registrado en:', registration.scope);
+          console.log('⚡ [PWA] Service Worker v3 registrado en:', registration.scope);
         })
         .catch((err) => {
           console.warn('⚠️ [PWA] Error al registrar Service Worker:', err);
