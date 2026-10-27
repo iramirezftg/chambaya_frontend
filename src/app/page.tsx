@@ -310,10 +310,13 @@ export default function LandingPage() {
             </p>
 
             <div style={{ display: 'flex', gap: '1rem', marginTop: '2rem', flexWrap: 'wrap' }}>
-              <Link href="/provider" className="btn btn-primary" style={{ background: '#10B981' }}>
-                Entrar al Panel de Proveedor
+              <Link href="/provider/login" className="btn btn-primary" style={{ background: '#3B82F6' }}>
+                Acceso Proveedores
               </Link>
-              <Link href="/admin" className="btn btn-secondary" style={{ background: 'transparent', color: '#FFF', borderColor: 'rgba(255,255,255,0.2)' }}>
+              <Link href="/serviceman/login" className="btn btn-primary" style={{ background: '#F59E0B', color: '#000' }}>
+                Acceso Chambeadores
+              </Link>
+              <Link href="/admin/login" className="btn btn-secondary" style={{ background: 'transparent', color: '#FFF', borderColor: 'rgba(255,255,255,0.2)' }}>
                 Torre de Control Super Admin
               </Link>
             </div>
@@ -346,12 +349,13 @@ export default function LandingPage() {
       {/* Footer */}
       <footer style={{ background: '#090D16', color: '#94A3B8', padding: '3.5rem 1.5rem 2rem 1.5rem' }}>
         <div style={{ maxWidth: '1280px', margin: '0 auto', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '1rem', fontSize: '0.82rem' }}>
-          <div>© 2026 ChambaYa México. Todos los derechos reservados. Desarrollado con Next.js 15 y NestJS API.</div>
-          <div style={{ display: 'flex', gap: '1.5rem' }}>
+          <div>© 2026 ChambaYa México. Todos los derechos reservados. Desarrollado con Next.js 16 y NestJS API.</div>
+          <div style={{ display: 'flex', gap: '1.5rem', flexWrap: 'wrap' }}>
             <Link href="/marketplace" style={{ color: 'inherit', textDecoration: 'none' }}>Catálogo de Chambas</Link>
-            <Link href="/provider" style={{ color: 'inherit', textDecoration: 'none' }}>Portal Proveedores</Link>
-            <Link href="/admin" style={{ color: 'inherit', textDecoration: 'none' }}>Torre de Control</Link>
-            <a href="http://localhost:4000/api/docs" target="_blank" rel="noreferrer" style={{ color: '#34D399', textDecoration: 'none' }}>API Swagger NestJS</a>
+            <Link href="/provider/login" style={{ color: 'inherit', textDecoration: 'none' }}>Portal Proveedores</Link>
+            <Link href="/serviceman/login" style={{ color: 'inherit', textDecoration: 'none' }}>App Chambeadores</Link>
+            <Link href="/admin/login" style={{ color: 'inherit', textDecoration: 'none' }}>Torre de Control</Link>
+            <a href="https://chambaya-backend-wryz.onrender.com/api/docs" target="_blank" rel="noreferrer" style={{ color: '#34D399', textDecoration: 'none' }}>API Swagger NestJS</a>
           </div>
         </div>
       </footer>

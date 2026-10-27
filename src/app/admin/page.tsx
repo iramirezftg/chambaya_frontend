@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePlatform } from '../../context/PlatformContext';
 import { api, EscrowDispute, EscrowStats, Coupon, PromotionStats } from '../../lib/api';
+import { RoleGuard } from '../../components/RoleGuard';
 import {
   ShieldCheck,
   ShieldAlert,
@@ -721,7 +722,12 @@ export default function AdminPage() {
   };
 
   return (
-    <div style={{ background: '#F8FAFC', minHeight: 'calc(100vh - 70px)', padding: '2rem 1.5rem' }}>
+    <RoleGuard
+      allowedRoles={['ADMIN']}
+      redirectLoginUrl="/admin/login"
+      portalName="Torre de Control Super Admin"
+    >
+      <div style={{ background: '#F8FAFC', minHeight: 'calc(100vh - 70px)', padding: '2rem 1.5rem' }}>
       <div style={{ maxWidth: '1350px', margin: '0 auto' }}>
         {/* Banner */}
         <div style={{
@@ -4856,6 +4862,7 @@ export default function AdminPage() {
         )}
       </div>
     </div>
+    </RoleGuard>
   );
 }
 

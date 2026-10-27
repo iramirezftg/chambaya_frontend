@@ -84,7 +84,7 @@ export const HeaderNav = () => {
             </span>
           </Link>
           <a
-            href="http://localhost:4000/api/docs"
+            href="https://chambaya-backend-wryz.onrender.com/api/docs"
             target="_blank"
             rel="noreferrer"
             style={{
@@ -250,6 +250,29 @@ export const HeaderNav = () => {
               {roleInfo.label}
             </span>
           </button>
+
+          {currentUser && (
+            <button
+              onClick={() => logout()}
+              title="Cerrar Sesión Activa"
+              style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.25rem',
+                background: 'rgba(239, 68, 68, 0.15)',
+                border: '1px solid rgba(239, 68, 68, 0.3)',
+                color: '#F87171',
+                padding: '0.3rem 0.55rem',
+                borderRadius: '9999px',
+                fontSize: '0.72rem',
+                fontWeight: 700,
+                cursor: 'pointer'
+              }}
+            >
+              <LogOut size={12} />
+              <span>Salir</span>
+            </button>
+          )}
 
           <button
             onClick={() => setShowSms(!showSms)}

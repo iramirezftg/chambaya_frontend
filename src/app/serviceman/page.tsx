@@ -21,6 +21,7 @@ import {
   Receipt
 } from 'lucide-react';
 import { KycVerificationModal } from '../../components/KycVerificationModal';
+import { RoleGuard } from '../../components/RoleGuard';
 
 export default function ServicemanPage() {
   const { activeServicemanId, servicemen, bookings, updateBookingStatus, refreshData, setFieldOpsBookingId } = usePlatform();
@@ -79,7 +80,12 @@ export default function ServicemanPage() {
   if (!tech) return <div style={{ padding: '2rem' }}>Cargando perfil del chambeador...</div>;
 
   return (
-    <div style={{ background: '#0F172A', minHeight: 'calc(100vh - 70px)', padding: '2rem 1rem', display: 'flex', justifyContent: 'center' }}>
+    <RoleGuard
+      allowedRoles={['SERVICEMAN', 'ADMIN']}
+      redirectLoginUrl="/serviceman/login"
+      portalName="App de Campo Chambeador"
+    >
+      <div style={{ background: '#0F172A', minHeight: 'calc(100vh - 70px)', padding: '2rem 1rem', display: 'flex', justifyContent: 'center' }}>
       <div style={{
         width: '400px',
         maxWidth: '100%',
@@ -384,5 +390,6 @@ export default function ServicemanPage() {
         />
       )}
     </div>
+    </RoleGuard>
   );
 }

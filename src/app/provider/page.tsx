@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { usePlatform } from '../../context/PlatformContext';
 import { api, ProviderTaxReport, ProviderSubscription, SubscriptionPlan } from '../../lib/api';
+import { RoleGuard } from '../../components/RoleGuard';
 import {
   Briefcase,
   DollarSign,
@@ -245,7 +246,12 @@ export default function ProviderPage() {
   if (!provider) return <div style={{ padding: '2rem' }}>Cargando datos del negocio proveedor...</div>;
 
   return (
-    <div style={{ background: '#F8FAFC', minHeight: 'calc(100vh - 70px)', padding: '2rem 1.5rem' }}>
+    <RoleGuard
+      allowedRoles={['PROVIDER', 'ADMIN']}
+      redirectLoginUrl="/provider/login"
+      portalName="Portal de Negocios y Proveedores"
+    >
+      <div style={{ background: '#F8FAFC', minHeight: 'calc(100vh - 70px)', padding: '2rem 1.5rem' }}>
       <div style={{ maxWidth: '1350px', margin: '0 auto' }}>
         {/* Banner */}
         <div style={{
@@ -1482,5 +1488,6 @@ export default function ProviderPage() {
         )}
       </div>
     </div>
+    </RoleGuard>
   );
 }

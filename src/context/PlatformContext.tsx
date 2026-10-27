@@ -5,10 +5,11 @@ import confetti from 'canvas-confetti';
 import { api, Category, Provider, Serviceman, ServiceItem, Booking, User } from '../lib/api';
 
 interface PlatformContextType {
-  // Authentication & Session
   currentUser: User | null;
   authToken: string | null;
+  isLoadingAuth: boolean;
   loginWithEmail: (email: string, pass: string) => Promise<User>;
+  loginWithRole: (email: string, pass: string, expectedRole?: 'CUSTOMER' | 'PROVIDER' | 'SERVICEMAN' | 'ADMIN') => Promise<User>;
   sendOtp: (phone: string) => Promise<{ success: boolean; message: string; otpPreview?: string }>;
   verifyOtp: (phone: string, code: string) => Promise<User>;
   registerUser: (data: any) => Promise<User>;
@@ -73,6 +74,7 @@ const PlatformContext = createContext<PlatformContextType | null>(null);
 export const PlatformProvider = ({ children }: { children: React.ReactNode }) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [authToken, setAuthToken] = useState<string | null>(null);
+  const [isLoadingAuth, setIsLoadingAuth] = useState<boolean>(true);
 
   const [categories, setCategories] = useState<Category[]>([]);
   const [providers, setProviders] = useState<Provider[]>([]);
@@ -144,7 +146,7 @@ export const PlatformProvider = ({ children }: { children: React.ReactNode }) =>
     }
   };
 
-  // Autenticación inicial
+  // Autenticación inicial: verificar token persistido en localStorage
   useEffect(() => {
     refreshData();
 
@@ -155,47 +157,70 @@ export const PlatformProvider = ({ children }: { children: React.ReactNode }) =>
           const profile = await api.getMe(storedToken);
           setCurrentUser(profile);
           setAuthToken(storedToken);
-          setCustomerUser({
-            name: profile.name,
-            email: profile.email,
-            phone: profile.phone,
-            address: profile.address || 'CDMX',
-            walletBalance: profile.walletBalance
-          });
-          return;
-        }
-
-        // Login inicial por defecto como Fernanda Gómez (Cliente)
-        const auth = await api.login('fernanda.gomez@gmail.com', 'chambaya123');
-        setCurrentUser(auth.user);
-        setAuthToken(auth.accessToken);
-        if (typeof window !== 'undefined') {
-          localStorage.setItem('chambaya_jwt_token', auth.accessToken);
+          if (profile.role === 'CUSTOMER') {
+            setCustomerUser({
+              name: profile.name,
+              email: profile.email,
+              phone: profile.phone,
+              address: profile.address || 'CDMX',
+              walletBalance: profile.walletBalance
+            });
+          }
+          if (profile.role === 'PROVIDER' && profile.provider?.id) {
+            setActiveProviderId(profile.provider.id);
+          }
+          if (profile.role === 'SERVICEMAN' && profile.serviceman?.id) {
+            setActiveServicemanId(profile.serviceman.id);
+          }
         }
       } catch (e) {
-        console.warn('Iniciando sesión anónima en ChambaYa:', e);
+        console.warn('Sesión no encontrada o expirada:', e);
+        if (typeof window !== 'undefined') {
+          localStorage.removeItem('chambaya_jwt_token');
+        }
+      } finally {
+        setIsLoadingAuth(false);
       }
     };
 
     initAuth();
   }, []);
 
-  const loginWithEmail = async (email: string, pass: string): Promise<User> => {
+  const loginWithRole = async (
+    email: string,
+    pass: string,
+    expectedRole?: 'CUSTOMER' | 'PROVIDER' | 'SERVICEMAN' | 'ADMIN'
+  ): Promise<User> => {
     const auth = await api.login(email, pass);
+    if (expectedRole && auth.user.role !== expectedRole && auth.user.role !== 'ADMIN') {
+      throw new Error(`Acceso denegado: Esta cuenta tiene rol [${auth.user.role}]. Se requiere rol [${expectedRole}] para ingresar a este portal.`);
+    }
     setCurrentUser(auth.user);
     setAuthToken(auth.accessToken);
     if (typeof window !== 'undefined') {
       localStorage.setItem('chambaya_jwt_token', auth.accessToken);
     }
-    setCustomerUser({
-      name: auth.user.name,
-      email: auth.user.email,
-      phone: auth.user.phone,
-      address: auth.user.address || 'CDMX',
-      walletBalance: auth.user.walletBalance
-    });
-    addNotification('Sesión Iniciada', `Bienvenido, ${auth.user.name} (${auth.user.role})`);
+    if (auth.user.role === 'CUSTOMER') {
+      setCustomerUser({
+        name: auth.user.name,
+        email: auth.user.email,
+        phone: auth.user.phone,
+        address: auth.user.address || 'CDMX',
+        walletBalance: auth.user.walletBalance
+      });
+    }
+    if (auth.user.role === 'PROVIDER' && auth.user.provider?.id) {
+      setActiveProviderId(auth.user.provider.id);
+    }
+    if (auth.user.role === 'SERVICEMAN' && auth.user.serviceman?.id) {
+      setActiveServicemanId(auth.user.serviceman.id);
+    }
+    addNotification('Sesión Iniciada', `Bienvenido al portal, ${auth.user.name} (${auth.user.role})`);
     return auth.user;
+  };
+
+  const loginWithEmail = async (email: string, pass: string): Promise<User> => {
+    return loginWithRole(email, pass);
   };
 
   const sendOtp = async (phone: string) => {
@@ -358,7 +383,9 @@ export const PlatformProvider = ({ children }: { children: React.ReactNode }) =>
       value={{
         currentUser,
         authToken,
+        isLoadingAuth,
         loginWithEmail,
+        loginWithRole,
         sendOtp,
         verifyOtp,
         registerUser,
