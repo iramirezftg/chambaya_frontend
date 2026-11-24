@@ -28,6 +28,9 @@ export const LiveTrackerModal = () => {
     setInvoicingBookingId,
     setDisputeBookingId,
     setFieldOpsBookingId,
+    setCertificateBookingId,
+    getBookingSecurity,
+    confirmPremisesExit,
     bookings,
     submitReview,
     currentUser
@@ -37,6 +40,7 @@ export const LiveTrackerModal = () => {
   const [rating, setRating] = useState(5);
   const [reviewText, setReviewText] = useState('');
   const [reviewed, setReviewed] = useState(false);
+  const [waFeedback, setWaFeedback] = useState('');
 
   // Live Chat state
   const [messages, setMessages] = useState<any[]>([]);
@@ -106,6 +110,8 @@ export const LiveTrackerModal = () => {
   }, [messages, activeTab]);
 
   if (!trackingBookingId || !booking) return null;
+
+  const sec = getBookingSecurity(booking);
 
   const handleSendMessage = async (textToSend?: string) => {
     const text = (textToSend || newMessageText).trim();
@@ -286,6 +292,25 @@ export const LiveTrackerModal = () => {
               >
                 <span>📸 Fotos & Ferretería</span>
               </button>
+              <button
+                type="button"
+                onClick={() => setCertificateBookingId(booking.id)}
+                style={{
+                  fontSize: '0.68rem',
+                  fontWeight: 800,
+                  padding: '0.15rem 0.5rem',
+                  borderRadius: '999px',
+                  border: '1px solid #4F46E5',
+                  background: '#EEF2FF',
+                  color: '#3730A3',
+                  cursor: 'pointer',
+                  display: 'inline-flex',
+                  alignItems: 'center',
+                  gap: '0.25rem'
+                }}
+              >
+                <span>📜 Acta SHA-256</span>
+              </button>
             </div>
             <h4 style={{ margin: 0, fontSize: '1rem', fontWeight: 800 }}>{booking.serviceTitle}</h4>
           </div>
@@ -418,15 +443,82 @@ export const LiveTrackerModal = () => {
                 </button>
               </div>
 
-              {/* Security PIN */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: '#F8FAFC', border: '1px dashed #CBD5E1', padding: '0.75rem', borderRadius: '10px' }}>
-                <div>
-                  <div style={{ fontSize: '0.7rem', color: '#64748B' }}>PIN de Seguridad (Iniciar Chamba)</div>
-                  <div style={{ fontSize: '1.4rem', fontWeight: 900, color: '#059669', letterSpacing: '0.15em' }}>{booking.otp}</div>
+              {/* Protocolo Doble Llave (3 Llaves de Ingreso y Cierre Seguro) */}
+              <div style={{ background: '#F8FAFC', border: '1px solid #CBD5E1', padding: '0.75rem', borderRadius: '12px', display: 'flex', flexDirection: 'column', gap: '0.55rem' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '0.74rem', fontWeight: 800, color: '#0F172A' }}>
+                  <span>🔐 Protocolo &ldquo;Doble Llave&rdquo; en Puerta</span>
+                  <span style={{ fontSize: '0.66rem', color: '#059669' }}>Póliza {sec.insurancePolicyId}</span>
                 </div>
-                <div style={{ fontSize: '0.7rem', color: '#64748B', maxWidth: '200px', textAlign: 'right' }}>
-                  Muestra este PIN al chambeador únicamente cuando llegue a tu domicilio para validar el arranque.
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '0.45rem' }}>
+                  <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '0.5rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.62rem', color: '#64748B', fontWeight: 700 }}>1. Exigir en Puerta</div>
+                    <div style={{ fontSize: '0.92rem', fontWeight: 900, color: '#0284C7', letterSpacing: '0.04em' }}>{sec.techVerifyCode}</div>
+                  </div>
+                  <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '0.5rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.62rem', color: '#64748B', fontWeight: 700 }}>2. PIN Inicio</div>
+                    <div style={{ fontSize: '0.98rem', fontWeight: 900, color: '#4F46E5', letterSpacing: '0.12em' }}>{booking.otp}</div>
+                  </div>
+                  <div style={{ background: '#FFF', border: '1px solid #E2E8F0', borderRadius: '8px', padding: '0.5rem', textAlign: 'center' }}>
+                    <div style={{ fontSize: '0.62rem', color: '#64748B', fontWeight: 700 }}>3. PIN Cierre</div>
+                    <div style={{ fontSize: '0.98rem', fontWeight: 900, color: '#059669', letterSpacing: '0.12em' }}>{sec.closingOtp}</div>
+                  </div>
                 </div>
+              </div>
+
+              {/* Pase Digital Caseta + Compartir Visita Segura por WhatsApp */}
+              <div style={{
+                background: 'linear-gradient(135deg, #ECFDF5 0%, #EFF6FF 100%)',
+                border: '1px solid #6EE7B7',
+                borderRadius: '12px',
+                padding: '0.75rem',
+                display: 'flex',
+                flexDirection: 'column',
+                gap: '0.5rem'
+              }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.4rem', flexWrap: 'wrap' }}>
+                  <div style={{ fontSize: '0.74rem', fontWeight: 800, color: '#065F46' }}>
+                    🏢 Pase Caseta: <span style={{ fontFamily: 'monospace' }}>{sec.gatehouseAccess.passCode}</span>
+                  </div>
+                  <span style={{ fontSize: '0.66rem', fontWeight: 700, color: sec.premisesExited ? '#059669' : '#1D4ED8' }}>
+                    {sec.premisesExited ? `🛰️ Salida GPS OK (${sec.exitTimestamp || 'Verificada'})` : '🛰️ Geocerca Domiciliaria Activa'}
+                  </span>
+                </div>
+                <div style={{ display: 'flex', gap: '0.45rem', flexWrap: 'wrap' }}>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const txt = `🛡️ Visita Segura ChambaYa (#${booking.id}): Técnico ${booking.servicemanName || 'Asignado'} (Código Puerta: ${sec.techVerifyCode}) acudirá a ${booking.customerAddress}. Póliza RC: ${sec.insurancePolicyId}.`;
+                      setWaFeedback('✓ Visita Segura lista en WhatsApp.');
+                      setTimeout(() => setWaFeedback(''), 3500);
+                      window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank', 'noopener,noreferrer');
+                    }}
+                    style={{ flex: 1, background: '#16A34A', color: '#FFF', border: 'none', borderRadius: '8px', padding: '0.45rem 0.6rem', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }}
+                  >
+                    📲 Compartir Visita Segura
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      const txt = `🏢 Pase Autorizado Caseta (${sec.gatehouseAccess.passCode}): Autorizo ingreso de ${booking.servicemanName || 'Chambeador ChambaYa'} (${booking.providerName}) a ${booking.customerAddress} en horario ${booking.scheduledTimeSlot}.`;
+                      setWaFeedback('✓ Pase QR de Caseta listo para Vigilancia.');
+                      setTimeout(() => setWaFeedback(''), 3500);
+                      window.open(`https://wa.me/?text=${encodeURIComponent(txt)}`, '_blank', 'noopener,noreferrer');
+                    }}
+                    style={{ flex: 1, background: '#0F172A', color: '#FFF', border: 'none', borderRadius: '8px', padding: '0.45rem 0.6rem', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }}
+                  >
+                    🏢 Pase QR a Caseta
+                  </button>
+                  {booking.status === 'completed' && !sec.premisesExited && (
+                    <button
+                      type="button"
+                      onClick={() => confirmPremisesExit(booking.id)}
+                      style={{ background: '#059669', color: '#FFF', border: 'none', borderRadius: '8px', padding: '0.45rem 0.6rem', fontSize: '0.7rem', fontWeight: 800, cursor: 'pointer' }}
+                    >
+                      🛰️ Check-Out GPS
+                    </button>
+                  )}
+                </div>
+                {waFeedback && <div style={{ fontSize: '0.68rem', fontWeight: 700, color: '#065F46' }}>{waFeedback}</div>}
               </div>
 
               {/* FieldOps Bitácora & Materiales Callout */}

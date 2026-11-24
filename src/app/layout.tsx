@@ -11,6 +11,8 @@ import { FieldOpsEvidenceModal } from "../components/FieldOpsEvidenceModal";
 import { EmergencySosModal } from "../components/EmergencySosModal";
 import { AiDiagnosticModal } from "../components/AiDiagnosticModal";
 import { ReferralModal } from "../components/ReferralModal";
+import { LegalCenterModal } from "../components/LegalCenterModal";
+import { ServiceCertificateModal } from "../components/ServiceCertificateModal";
 import { PwaManager } from "../components/PwaManager";
 
 export const metadata: Metadata = {
@@ -70,6 +72,8 @@ export default function RootLayout({
             <EmergencySosModal />
             <AiDiagnosticModal />
             <ReferralModal />
+            <LegalCenterModal />
+            <ServiceCertificateModal />
             <PwaManager />
           </div>
         </PlatformProvider>

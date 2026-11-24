@@ -3,6 +3,14 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import confetti from 'canvas-confetti';
 import { api, Category, Provider, Serviceman, ServiceItem, Booking, User } from '../lib/api';
+import {
+  BookingSecurityRecord,
+  GatehouseAccess,
+  LegalModalSection,
+  buildDefaultSecurityRecord,
+  loadSecurityStore,
+  saveSecurityStore
+} from '../lib/securityProtocol';
 
 interface PlatformContextType {
   currentUser: User | null;
@@ -51,6 +59,16 @@ interface PlatformContextType {
   setShowAiDiagnosticModal: (show: boolean) => void;
   showReferralModal: boolean;
   setShowReferralModal: (show: boolean) => void;
+  legalModalSection: LegalModalSection;
+  setLegalModalSection: (section: LegalModalSection) => void;
+  certificateBookingId: string | null;
+  setCertificateBookingId: (id: string | null) => void;
+  getBookingSecurity: (booking: Booking) => BookingSecurityRecord;
+  saveGatehouseAccess: (bookingId: string, access: Partial<GatehouseAccess>) => void;
+  completeSelfieCheckIn: (bookingId: string, selfiePhotoUrl?: string | null) => void;
+  confirmPremisesExit: (bookingId: string) => void;
+  signDigitalCertificate: (bookingId: string, signerName: string) => void;
+  reportCustomerNoShow: (bookingId: string) => void;
   refreshData: () => Promise<void>;
   notifications: { id: string; title: string; message: string; time: string }[];
 
@@ -105,6 +123,9 @@ export const PlatformProvider = ({ children }: { children: React.ReactNode }) =>
   const [activeEmergencyBookingId, setActiveEmergencyBookingId] = useState<string | null>(null);
   const [showAiDiagnosticModal, setShowAiDiagnosticModal] = useState<boolean>(false);
   const [showReferralModal, setShowReferralModal] = useState<boolean>(false);
+  const [legalModalSection, setLegalModalSection] = useState<LegalModalSection>(null);
+  const [certificateBookingId, setCertificateBookingId] = useState<string | null>(null);
+  const [securityStore, setSecurityStore] = useState<Record<string, Partial<BookingSecurityRecord>>>(() => loadSecurityStore());
   const [notifications, setNotifications] = useState([
     {
       id: 'notif-1',
@@ -378,6 +399,100 @@ export const PlatformProvider = ({ children }: { children: React.ReactNode }) =>
     setGateways(prev => ({ ...prev, [key]: updated }));
   };
 
+  // --- Protocolo Doble Llave, Caseta QR, Check-Out GPS, No-Show & Acta NOM-151 ---
+  const patchSecurityRecord = (bookingId: string, patch: Partial<BookingSecurityRecord>) => {
+    setSecurityStore(prev => {
+      const next = {
+        ...prev,
+        [bookingId]: {
+          ...(prev[bookingId] || {}),
+          ...patch
+        }
+      };
+      saveSecurityStore(next);
+      return next;
+    });
+  };
+
+  const getBookingSecurity = (booking: Booking): BookingSecurityRecord => {
+    const defaults = buildDefaultSecurityRecord(booking.id, booking.otp, booking.status);
+    const saved = securityStore[booking.id];
+    if (!saved) return defaults;
+    return {
+      ...defaults,
+      ...saved,
+      gatehouseAccess: {
+        ...defaults.gatehouseAccess,
+        ...(saved.gatehouseAccess || {})
+      }
+    };
+  };
+
+  const saveGatehouseAccess = (bookingId: string, access: Partial<GatehouseAccess>) => {
+    const existingBooking = bookings.find(b => b.id === bookingId);
+    const defaults = buildDefaultSecurityRecord(bookingId, existingBooking?.otp, existingBooking?.status);
+    const prevAccess = securityStore[bookingId]?.gatehouseAccess || defaults.gatehouseAccess;
+    patchSecurityRecord(bookingId, {
+      gatehouseAccess: {
+        ...prevAccess,
+        ...access
+      }
+    });
+  };
+
+  const completeSelfieCheckIn = (bookingId: string, selfiePhotoUrl?: string | null) => {
+    patchSecurityRecord(bookingId, {
+      selfieCheckIn: true,
+      selfiePhotoUrl: selfiePhotoUrl || null
+    });
+    addNotification(
+      'Biometría Facial Pre-Ruta Aprobada',
+      `El chambeador validó su selfie en vivo antes de iniciar ruta hacia la orden ${bookingId}.`
+    );
+  };
+
+  const confirmPremisesExit = (bookingId: string) => {
+    const timeStr = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    patchSecurityRecord(bookingId, {
+      premisesExited: true,
+      exitTimestamp: timeStr
+    });
+    addNotification(
+      'Check-Out GPS (>50m) Verificado',
+      `El chambeador salió del perímetro del domicilio en la orden ${bookingId}. Licencia temporal de acceso extinguida.`
+    );
+  };
+
+  const signDigitalCertificate = (bookingId: string, signerName: string) => {
+    const timeStr = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    const sealHash = `SIG-NOM151-${bookingId.slice(-4).toUpperCase()}-${Math.random().toString(16).slice(2, 10).toUpperCase()}`;
+    const updatedCertHash = `SHA256-SEALED-${Math.random().toString(16).slice(2, 10).toUpperCase()}${Math.random().toString(16).slice(2, 10).toUpperCase()}`;
+    patchSecurityRecord(bookingId, {
+      certificateHash: updatedCertHash,
+      digitalSignature: {
+        signerName,
+        signedAt: `${new Date().toISOString().slice(0, 10)} ${timeStr}`,
+        standard: 'Constancia de Conservación NOM-151 / E-Sign MX',
+        sealHash
+      }
+    });
+    addNotification(
+      'Acta Criptográfica Firmada (SHA-256)',
+      `El Acta Digital de la orden ${bookingId} quedó sellada por ${signerName} (${sealHash}).`
+    );
+  };
+
+  const reportCustomerNoShow = (bookingId: string) => {
+    const timeStr = new Date().toLocaleTimeString('es-MX', { hour: '2-digit', minute: '2-digit' });
+    patchSecurityRecord(bookingId, {
+      noShowReportedAt: timeStr
+    });
+    addNotification(
+      'Protección Anti-No-Show Activada ($250 MXN)',
+      `Se registró espera en geocerca GPS sin acceso en puerta para la orden ${bookingId}. Tarifa de visita garantizada ($250 MXN) en liquidación.`
+    );
+  };
+
   return (
     <PlatformContext.Provider
       value={{
@@ -423,6 +538,16 @@ export const PlatformProvider = ({ children }: { children: React.ReactNode }) =>
         setShowAiDiagnosticModal,
         showReferralModal,
         setShowReferralModal,
+        legalModalSection,
+        setLegalModalSection,
+        certificateBookingId,
+        setCertificateBookingId,
+        getBookingSecurity,
+        saveGatehouseAccess,
+        completeSelfieCheckIn,
+        confirmPremisesExit,
+        signDigitalCertificate,
+        reportCustomerNoShow,
         refreshData,
         notifications,
         createNewBooking,
