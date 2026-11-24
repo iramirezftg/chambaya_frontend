@@ -37,7 +37,8 @@ export const HeaderNav = () => {
     logout,
     setShowEmergencyModal,
     setShowAiDiagnosticModal,
-    setShowReferralModal
+    setShowReferralModal,
+    setLegalModalSection
   } = usePlatform();
 
   const [showNotif, setShowNotif] = useState(false);
@@ -222,6 +223,29 @@ export const HeaderNav = () => {
           >
             <Gift size={13} color="#FFF" />
             <span>🎁 Gana $100</span>
+          </button>
+
+          {/* Legal & Double-Key Security Button */}
+          <button
+            type="button"
+            onClick={() => setLegalModalSection('security_protocol')}
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.3rem',
+              background: 'rgba(99, 102, 241, 0.2)',
+              border: '1px solid rgba(99, 102, 241, 0.5)',
+              color: '#C7D2FE',
+              padding: '0.32rem 0.65rem',
+              borderRadius: '9999px',
+              fontSize: '0.72rem',
+              fontWeight: 700,
+              cursor: 'pointer'
+            }}
+            title="Protocolo Doble Llave, Escrow y Aviso de Privacidad LFPDPPP"
+          >
+            <ShieldCheck size={13} />
+            <span>Legal</span>
           </button>
 
           {/* User Auth Session Button */}

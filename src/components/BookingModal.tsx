@@ -19,11 +19,12 @@ const BookingModalContent = ({ service }: { service: any }) => {
   const {
     setBookingModalService,
     providers,
-    gateways,
     customerUser,
     createNewBooking,
+    saveGatehouseAccess,
     setTrackingBookingId,
-    setCheckoutBookingId
+    setCheckoutBookingId,
+    setLegalModalSection
   } = usePlatform();
 
   const provider = providers.find(p => p.id === service.providerId);
@@ -32,6 +33,12 @@ const BookingModalContent = ({ service }: { service: any }) => {
   const [scheduledDate, setScheduledDate] = useState('2026-10-23');
   const [selectedTimeSlot, setSelectedTimeSlot] = useState('10:00 AM - 11:30 AM');
   const [address, setAddress] = useState(customerUser.address);
+  const [colony, setColony] = useState('Roma Norte');
+  const [postalCode, setPostalCode] = useState('06700');
+  const [crossStreets, setCrossStreets] = useState('Entre Orizaba y Córdoba');
+  const [requiresGuardPass, setRequiresGuardPass] = useState(true);
+  const [guardNotes, setGuardNotes] = useState('Registrarse en caseta con INE y Pase Digital ChambaYa.');
+  const [termsAccepted, setTermsAccepted] = useState(true);
   const [couponCode, setCouponCode] = useState('');
   const [discountAmount, setDiscountAmount] = useState(0);
   const [paymentMethod, setPaymentMethod] = useState('card');
@@ -57,16 +64,27 @@ const BookingModalContent = ({ service }: { service: any }) => {
   };
 
   const handleConfirm = async () => {
+    if (!termsAccepted) return;
     setIsSubmitting(true);
     try {
+      const fullAddress = [address, colony ? `Col. ${colony}` : '', postalCode ? `CP ${postalCode}` : '']
+        .filter(Boolean)
+        .join(', ');
       const created = await createNewBooking({
         serviceId: service.id,
         amount: total,
         paymentMethod,
-        address,
+        address: fullAddress,
         scheduledDate,
         scheduledTimeSlot: selectedTimeSlot,
         variant: selectedVariant
+      });
+      saveGatehouseAccess(created.id, {
+        requiresGuardPass,
+        colony,
+        postalCode,
+        crossStreets,
+        guardNotes
       });
       setIsSubmitting(false);
       setBookingModalService(null);
@@ -75,7 +93,7 @@ const BookingModalContent = ({ service }: { service: any }) => {
       } else {
         setCheckoutBookingId(created.id);
       }
-    } catch (err) {
+    } catch {
       setIsSubmitting(false);
       alert('Hubo un error al agendar la chamba. Intenta nuevamente.');
     }
@@ -171,19 +189,58 @@ const BookingModalContent = ({ service }: { service: any }) => {
             </div>
           </div>
 
-          {/* Address */}
-          <div>
-            <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#475569', display: 'flex', alignItems: 'center', gap: '0.3rem', marginBottom: '0.3rem' }}>
-              <MapPin size={13} color="#10B981" />
-              <span>Dirección del Servicio</span>
-            </label>
+          {/* Address & Gatehouse / Condominium Access */}
+          <div style={{ background: '#F8FAFC', border: '1px solid #E2E8F0', borderRadius: '10px', padding: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.25rem' }}>
+              <label style={{ fontSize: '0.8rem', fontWeight: 700, color: '#0F172A', display: 'flex', alignItems: 'center', gap: '0.3rem' }}>
+                <MapPin size={13} color="#10B981" />
+                <span>Dirección y Acceso en Caseta</span>
+              </label>
+              <span style={{ fontSize: '0.67rem', color: '#059669', fontWeight: 700 }}>🔒 Protegida por LFPDPPP</span>
+            </div>
             <input
               type="text"
               value={address}
               onChange={e => setAddress(e.target.value)}
-              placeholder="Calle, número, colonia, código postal"
-              style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.82rem' }}
+              placeholder="Calle, número exterior e interior / Depto"
+              style={{ width: '100%', padding: '0.5rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.82rem', background: '#FFF' }}
             />
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 0.65fr 1.1fr', gap: '0.4rem' }}>
+              <input
+                type="text"
+                value={colony}
+                onChange={e => setColony(e.target.value)}
+                placeholder="Colonia"
+                style={{ width: '100%', padding: '0.45rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.78rem', background: '#FFF' }}
+              />
+              <input
+                type="text"
+                value={postalCode}
+                onChange={e => setPostalCode(e.target.value)}
+                placeholder="C.P."
+                style={{ width: '100%', padding: '0.45rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.78rem', background: '#FFF' }}
+              />
+              <input
+                type="text"
+                value={crossStreets}
+                onChange={e => setCrossStreets(e.target.value)}
+                placeholder="Entre calles"
+                style={{ width: '100%', padding: '0.45rem', borderRadius: '8px', border: '1px solid #CBD5E1', fontSize: '0.78rem', background: '#FFF' }}
+              />
+            </div>
+            <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.74rem', fontWeight: 700, color: '#065F46', cursor: 'pointer' }}>
+              <input type="checkbox" checked={requiresGuardPass} onChange={e => setRequiresGuardPass(e.target.checked)} />
+              <span>🏢 Generar Pase QR para Caseta / Vigilancia de Condominio</span>
+            </label>
+            {requiresGuardPass && (
+              <input
+                type="text"
+                value={guardNotes}
+                onChange={e => setGuardNotes(e.target.value)}
+                placeholder="Instrucciones para el guardia / recepción"
+                style={{ width: '100%', padding: '0.45rem', borderRadius: '8px', border: '1px solid #A7F3D0', fontSize: '0.75rem', background: '#ECFDF5' }}
+              />
+            )}
           </div>
 
           {/* Promo */}
@@ -252,12 +309,31 @@ const BookingModalContent = ({ service }: { service: any }) => {
             </div>
           </div>
 
+          {/* Legal & Security Consent */}
+          <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.72rem', color: '#475569', background: '#F1F5F9', padding: '0.6rem', borderRadius: '10px', cursor: 'pointer' }}>
+            <input type="checkbox" checked={termsAccepted} onChange={e => setTermsAccepted(e.target.checked)} style={{ marginTop: '0.15rem' }} />
+            <span>
+              Acepto los{' '}
+              <button type="button" onClick={() => setLegalModalSection('terms')} style={{ background: 'none', border: 'none', color: '#059669', fontWeight: 700, textDecoration: 'underline', padding: 0, cursor: 'pointer', fontSize: '0.72rem' }}>
+                Términos y Escrow
+              </button>
+              , el{' '}
+              <button type="button" onClick={() => setLegalModalSection('security_protocol')} style={{ background: 'none', border: 'none', color: '#059669', fontWeight: 700, textDecoration: 'underline', padding: 0, cursor: 'pointer', fontSize: '0.72rem' }}>
+                Protocolo Doble Llave
+              </button>{' '}
+              y el{' '}
+              <button type="button" onClick={() => setLegalModalSection('privacy')} style={{ background: 'none', border: 'none', color: '#059669', fontWeight: 700, textDecoration: 'underline', padding: 0, cursor: 'pointer', fontSize: '0.72rem' }}>
+                Aviso de Privacidad LFPDPPP
+              </button>.
+            </span>
+          </label>
+
           <button
             type="button"
             className="btn btn-primary"
             onClick={handleConfirm}
-            disabled={isSubmitting}
-            style={{ width: '100%', padding: '0.8rem', fontSize: '0.92rem', background: '#10B981' }}
+            disabled={isSubmitting || !termsAccepted}
+            style={{ width: '100%', padding: '0.8rem', fontSize: '0.92rem', background: '#10B981', opacity: termsAccepted ? 1 : 0.5 }}
           >
             {isSubmitting ? 'Confirmando con NestJS...' : `Confirmar y Pedir Chamba ($${total.toFixed(2)} MXN)`}
           </button>

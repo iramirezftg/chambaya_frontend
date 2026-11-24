@@ -20,7 +20,7 @@ import {
 } from 'lucide-react';
 
 export default function LandingPage() {
-  const { categories, services, providers, setBookingModalService } = usePlatform();
+  const { categories, services, providers, setBookingModalService, setLegalModalSection } = usePlatform();
   const [search, setSearch] = useState('');
   const [zone, setZone] = useState('CDMX - Roma / Condesa');
 
@@ -355,6 +355,10 @@ export default function LandingPage() {
             <Link href="/provider/login" style={{ color: 'inherit', textDecoration: 'none' }}>Portal Proveedores</Link>
             <Link href="/serviceman/login" style={{ color: 'inherit', textDecoration: 'none' }}>App Chambeadores</Link>
             <Link href="/admin/login" style={{ color: 'inherit', textDecoration: 'none' }}>Torre de Control</Link>
+            <button type="button" onClick={() => setLegalModalSection('security_protocol')} style={{ background: 'none', border: 'none', color: '#34D399', cursor: 'pointer', fontSize: 'inherit', fontWeight: 700, padding: 0 }}>Protocolo Hogar Seguro</button>
+            <button type="button" onClick={() => setLegalModalSection('terms')} style={{ background: 'none', border: 'none', color: '#A5B4FC', cursor: 'pointer', fontSize: 'inherit', padding: 0 }}>Términos Escrow</button>
+            <button type="button" onClick={() => setLegalModalSection('privacy')} style={{ background: 'none', border: 'none', color: '#A5B4FC', cursor: 'pointer', fontSize: 'inherit', padding: 0 }}>Privacidad LFPDPPP</button>
+            <button type="button" onClick={() => setLegalModalSection('provider_contract')} style={{ background: 'none', border: 'none', color: '#A5B4FC', cursor: 'pointer', fontSize: 'inherit', padding: 0 }}>Contrato B2B2C</button>
             <a href="https://chambaya-backend-wryz.onrender.com/api/docs" target="_blank" rel="noreferrer" style={{ color: '#34D399', textDecoration: 'none' }}>API Swagger NestJS</a>
           </div>
         </div>
